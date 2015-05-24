@@ -1,10 +1,4 @@
-/*
-   Kenneth L Moore
-   11.16.2003
-   Dijkstra Algorithm via the STL
-   Many thanks to iCarnegie(http://www3.carnegietech.org/) 
-   for this brillant approach.
-*/
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -22,10 +16,10 @@ public:
 	string    name;
 	list<Edge*> neighbors;
 	bool      visited;
-	double       cost;
+	double       distance;
 	Node      *back_pointer;
 
-	Node(string const &n): name(n),visited(false),cost(0){}
+	Node(string const &n): name(n),visited(false),distance(0){}
 };
 
 class Edge 
@@ -71,7 +65,7 @@ struct compare{
    
    bool operator()(Node * &a,Node * &b)const{
       // least to greatest
-      return b->cost < a->cost;      
+      return b->distance < a->distance;      
    }
 };
 
@@ -79,7 +73,7 @@ struct compare{
 void reset_nodes(NodeMap &nm){
 	map<string,Node*>::iterator im;
 	for(im = nm.nodemap.begin(); im != nm.nodemap.end(); im++){
-		(*im).second->cost = 0; 
+		(*im).second->distance = 9999990; 
 		(*im).second->back_pointer = 0;
 		(*im).second->visited = false;
 	}
@@ -102,24 +96,31 @@ void dijkstra(string s,string t,NodeMap &nodes){
 	pq.push(source);
 	while(!pq.empty()){
 
-		// process least cost node.
-		Node* curr = pq.top(); 
+		// process least distance node.
+		Node* current = pq.top(); 
 		pq.pop();
-		curr->visited = true;
+		current->visited = true;
 
 		// process neighbors
-		list<Edge*>::iterator edge;
-		for(edge = curr->neighbors.begin(); edge != curr->neighbors.end(); edge++){
-			Node *ne = (*edge)->dest;
+		list<Edge*>::iterator neighbour;
+		for(neighbour = current->neighbors.begin(); neighbour != current->neighbors.end(); neighbour++){
+			Node *ne = (*neighbour)->dest;
 			if(!ne->visited){
-				ne->cost += (*edge)->weight + curr->cost;
+				ne->distance += (*neighbour)->weight + current->distance;
 				ne->visited = true;
-				ne->back_pointer = curr;
-				cout << " pushing " << ne->name << " cost " << ne->cost << endl;;
+				ne->back_pointer = current;
+				cout << " pushing " << ne->name << " distance " << ne->distance << endl;
 				pq.push(ne);
 			}
 			else{
-				// see if this can cost less
+				if (ne->distance > (*neighbour)->weight + current->distance)
+				{
+					ne->distance = (*neighbour)->weight + current->distance;
+					ne->back_pointer = current;
+					cout << " pushing " << ne->name << " distance " << ne->distance << endl;
+				}
+				
+				// see if this can distance less
 			}
 		}
 	}
@@ -143,6 +144,11 @@ void get_graph(string const &filename, NodeMap &node_map)
 		}
 	}
 }
+
+void myfunction(Node* n) {  // function:
+	std::cout << ' ' << n->name;
+}
+
 void main(){
 	NodeMap nodes;
 	get_graph("graph.txt", nodes);
@@ -160,12 +166,15 @@ void main(){
 		cin >> s;
 	}while(s == "y");
 
+	vector<Node*> path;
 	Node* target = nodes.find_in_nodemap(t);
 	Node* previous = target->back_pointer;
+	path.push_back(target);
 	while(previous != NULL){
-		cout << previous->name;
+		path.push_back(previous);
 		previous = previous->back_pointer;
 
 	}
-
+	std::reverse(path.begin(), path.end());
+	std::for_each(path.begin(), path.end(), myfunction);
 }
