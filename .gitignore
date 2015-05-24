@@ -1,0 +1,7 @@
+*.tlog
+*.idb
+*.opensdf
+Dijkstra.sdf
+Dijkstra.sln
+Dijkstra.vcxproj
+Dijkstra.vcxproj.filters
